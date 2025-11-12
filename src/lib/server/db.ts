@@ -24,7 +24,8 @@ const initDatabase = () => {
     CREATE TABLE IF NOT EXISTS snapshots (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       fetched_at INTEGER NOT NULL,
-      event TEXT NOT NULL
+      event TEXT NOT NULL,
+			day1_ts INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS member_snapshots (
@@ -48,20 +49,20 @@ const initDatabase = () => {
       UNIQUE(snapshot_id, member_id, day, part)
     );
   `);
-}
+};
 
 initDatabase();
 
-export const getLatestSnapshot = ()=>  {
+export const getLatestSnapshot = () => {
 	const stmt = db.prepare(`
-    SELECT id, fetched_at, event 
+    SELECT id, fetched_at, event, day1_ts
     FROM snapshots 
     ORDER BY fetched_at DESC 
     LIMIT 1
   `);
 
-	return stmt.get() as { id: number; fetched_at: number; event: string } | undefined;
-}
+	return stmt.get() as { id: number; fetched_at: number; event: string; day1_ts: number };
+};
 
 export const getSnapshotHistory = (limit: number = 100) => {
 	const stmt = db.prepare(`
@@ -72,7 +73,7 @@ export const getSnapshotHistory = (limit: number = 100) => {
   `);
 
 	return stmt.all(limit);
-}
+};
 
 export const getMemberFromSnapshot = (snapshot_id: number, member_id: number) => {
 	const stmt = db.prepare(`
@@ -82,13 +83,13 @@ export const getMemberFromSnapshot = (snapshot_id: number, member_id: number) =>
 	`);
 
 	return stmt.get(snapshot_id, member_id);
-}
-export const saveSnapshot = (data: LeaderboardData, event: string) => {
+};
+export const saveSnapshot = (data: LeaderboardData, event: string, day1_ts: number) => {
 	const snapshotStmt = db.prepare(`
-		INSERT INTO snapshots (fetched_at, event)
-		VALUES (?, ?)
+		INSERT INTO snapshots (fetched_at, event, day1_ts)
+		VALUES (?, ?, ?)
 	`);
-	const result = snapshotStmt.run(Date.now() / 1000, event);
+	const result = snapshotStmt.run(Date.now() / 1000, event, day1_ts);
 	const snapshotId = result.lastInsertRowid;
 
 	const memberStmt = db.prepare(`
@@ -118,9 +119,9 @@ export const saveSnapshot = (data: LeaderboardData, event: string) => {
 		}
 	}
 	return snapshotId;
-}
+};
 
-export const getAllMembersForSnapshot = (snapshotId: number) =>{
+export const getAllMembersForSnapshot = (snapshotId: number) => {
 	const stmt = db.prepare(`
 		SELECT member_id, name, stars, local_score, last_star_ts
 		FROM member_snapshots
@@ -133,9 +134,9 @@ export const getAllMembersForSnapshot = (snapshotId: number) =>{
 		local_score: number;
 		last_star_ts: number;
 	}>;
-}
+};
 
-export const getAllStarsForSnapshot= (snapshotId: number)=> {
+export const getAllStarsForSnapshot = (snapshotId: number) => {
 	const stmt = db.prepare(`
 		SELECT member_id, day, part, completed_at
 		FROM star_completions
@@ -147,7 +148,7 @@ export const getAllStarsForSnapshot= (snapshotId: number)=> {
 		part: number;
 		completed_at: number;
 	}>;
-}
+};
 
 export const getSnapshotData = (snapshot_id: number): LeaderboardData => {
 	const members = getAllMembersForSnapshot(snapshot_id);
@@ -187,6 +188,30 @@ export const getSnapshotData = (snapshot_id: number): LeaderboardData => {
 		members: membersMap,
 		event: snapshot?.event || '2024'
 	};
-}
+};
 
+export const getRecentStars = (secondsAgo: number, snapshot_id: number) => {
+	const nowInSeconds = Math.floor(Date.now() / 1000);
+	const cutoffTime = nowInSeconds - secondsAgo;
+	const recentStars = db.prepare(`
+        SELECT member_id, part, day 
+        FROM star_completions 
+        WHERE completed_at > ?
+        AND snapshot_id = ?
+    `);
+	return recentStars.all(cutoffTime, snapshot_id) as Array<{
+		member_id: number;
+		part: number;
+		day: number;
+	}>;
+};
 
+export const firstDay = (): number | undefined => {
+	const stmt = db.prepare(`
+    SELECT day1_ts
+    FROM snapshots
+    ORDER BY snapshots.fetched_at DESC LIMIT 1
+  `);
+	const row = stmt.get() as { day1_ts?: number } | undefined;
+	return row?.day1_ts;
+};

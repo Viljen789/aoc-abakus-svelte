@@ -1,16 +1,22 @@
 import { AOC_LEADERBOARD_URL, AOC_SESSION_COOKIE } from '$env/static/private';
-import { getLatestSnapshot, getSnapshotData, saveSnapshot } from '$lib/server/db.ts';
+import {
+	getLatestSnapshot,
+	getSnapshotData,
+	saveSnapshot,
+	getRecentStars,
+	firstDay
+} from '$lib/server/db.ts';
 
 const convertUnixToDateTime = (timestamp: number | undefined) => {
 	const date = new Date(timestamp * 1000);
 	return date.toLocaleString();
 };
 
-export async function load() {
+export const load = async () => {
 	let latest = getLatestSnapshot();
 	const waitMs = Date.now() - (latest?.fetched_at ? latest.fetched_at * 1000 : 0);
 	const waitSStr = new Date(waitMs).toISOString().slice(11, 19);
-	const remainingTime = new Date(900000-waitMs).toISOString().slice(11, 19);
+	const remainingTime = new Date(900000 - waitMs).toISOString().slice(11, 19);
 
 	if (!latest || waitMs > 900 * 1000) {
 		const response = await fetch(AOC_LEADERBOARD_URL, {
@@ -19,7 +25,7 @@ export async function load() {
 			}
 		});
 		const data = await response.json();
-		saveSnapshot(data, data.event);
+		saveSnapshot(data, data.event, data.day1_ts);
 		console.log('Fetched data');
 
 		latest = getLatestSnapshot();
@@ -27,7 +33,7 @@ export async function load() {
 		console.log('Too frequent. Fetching data from: ');
 		latest = getLatestSnapshot();
 		console.log('fetched at: ', convertUnixToDateTime(latest?.fetched_at));
-		console.log('Will not fetch for another: ',remainingTime , 'Current wait: (s):', waitSStr );
+		console.log('Will not fetch for another: ', remainingTime, 'Current wait: (s):', waitSStr);
 		console.log('Snapshot: ', latest?.id);
 	}
 
@@ -36,7 +42,10 @@ export async function load() {
 		return { members: {}, event: '2024' };
 	}
 
+	const recentStars = getRecentStars(24 * 60 * 60, latest?.id);
 	const result = getSnapshotData(latest.id);
-
-	return result;
-}
+	const first_day_raw = firstDay();
+	const first_day = first_day_raw ?? Math.floor(Date.now() / 1000);
+	console.log(first_day);
+	return { result, recentStars, first_day };
+};

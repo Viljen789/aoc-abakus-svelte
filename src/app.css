@@ -1,1 +1,21 @@
 @import 'tailwindcss';
+@keyframes shimmer {
+	0% {
+		filter: brightness(1);
+	}
+	50% {
+		filter: brightness(1.5) drop-shadow(0 0 8px currentColor);
+	}
+	100% {
+		filter: brightness(1);
+	}
+}
+
+.shimmer {
+	animation: shimmer 1.5s ease-in-out 3;
+	display: inline-block;
+}
+
+button {
+	cursor: pointer;
+}

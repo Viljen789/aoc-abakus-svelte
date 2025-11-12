@@ -1,14 +1,16 @@
 <script lang="ts">
-	let { activeTab = $bindable(), labels } = $props<{ activeTab: number; labels: string[] }>();
+	import type { Component } from 'svelte';
+
+	let { activeTab = $bindable(), icons } = $props<{ activeTab: number; icons: Component }>();
 	const setTab = (e: number) => {
 		activeTab = e;
 	};
 </script>
 
 <div>
-	{#each labels as label, i (label)}
-		<button onclick={() => setTab(i)}>
-			{label}
+	{#each icons as Icon, i (Icon)}
+		<button onclick={() => setTab(i)} class="bg-red-100">
+			<Icon />
 		</button>
 	{/each}
 </div>

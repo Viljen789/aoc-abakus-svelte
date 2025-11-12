@@ -1,6 +1,5 @@
 <script lang="ts">
-
- // USE DynamicClock instead if possible, it is much cleaner and more versatile
+	// USE DynamicClock instead if possible, it is much cleaner and more versatile
 	import { digitsMapSmall } from '$lib/assets/Digitsmap.js';
 
 	const digits = digitsMapSmall as Record<string, string[]>;

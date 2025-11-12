@@ -1,18 +1,12 @@
 import { AOC_LEADERBOARD_URL, AOC_SESSION_COOKIE } from '$env/static/private';
-import {
-	getLatestSnapshot,
-	getSnapshotData,
-	saveSnapshot,
-	getRecentStars,
-	firstDay
-} from '$lib/server/db.ts';
+import { getLatestSnapshot, getSnapshotData, saveSnapshot } from '$lib/server/db.ts';
 
 const convertUnixToDateTime = (timestamp: number | undefined) => {
 	const date = new Date(timestamp * 1000);
 	return date.toLocaleString();
 };
 
-export const load = async () => {
+export async function load({ locals }) {
 	let latest = getLatestSnapshot();
 	const waitMs = Date.now() - (latest?.fetched_at ? latest.fetched_at * 1000 : 0);
 	const waitSStr = new Date(waitMs).toISOString().slice(11, 19);
@@ -39,13 +33,13 @@ export const load = async () => {
 
 	if (!latest) {
 		console.error('No snapshot available');
-		return { members: {}, event: '2024' };
+		return { members: {}, event: '2024', user: locals.user };
 	}
 
-	const recentStars = getRecentStars(24 * 60 * 60, latest?.id);
 	const result = getSnapshotData(latest.id);
-	const first_day_raw = firstDay();
-	const first_day = first_day_raw ?? Math.floor(Date.now() / 1000);
-	console.log(first_day);
-	return { result, recentStars, first_day };
-};
+
+	return {
+		...result,
+		user: locals.user
+	};
+}

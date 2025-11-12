@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { X, Check, CheckCheck, CalendarClock } from 'lucide-svelte';
-	import type { member } from '$lib/server/db.ts';
+	import { type member } from '$lib/server/db.ts';
 
 	const { result = { members: {}, event: '2024' }, recentStars = [] } = $props();
 	const currentDay = 17;
 
 	const sortedMembers = Object.values(result.members).sort((a, b) => b.local_score - a.local_score);
+	const currentYear = parseInt(result.event);
 
 	const getDayStatus = (member: member, day: number) => {
 		const dayData = member.completion_day_level[day];
@@ -39,7 +40,9 @@
 							style={day > currentDay ? 'filter:; background-color: gray;' : ''}
 						>
 							{#if day <= currentDay}
-								{day}
+								<a href={`https://adventofcode.com/${currentYear}/day/${day}`} class="text-blue-300"
+									>{day}</a
+								>
 							{:else}
 								<CalendarClock />
 							{/if}

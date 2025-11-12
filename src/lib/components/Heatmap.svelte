@@ -1,1 +1,0 @@
-<div>Heatmap</div>

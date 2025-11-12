@@ -11,6 +11,7 @@ export const timeDiff = (start: number, end: number) => {
 	return { d: dInMs, h: hInMs, m: mInMs, s: sInMs };
 };
 
-export const diffToFormat = (diff: object) => `${(diff.d).toString().padStart(2, "0")}:${(diff.h).toString().padStart(2, "0")}:${(diff.m).toString().padStart(2, "0")}:${(diff.s).toString().padStart(2, "0")}`;
+export const diffToFormat = (diff: object) =>
+	`${diff.d.toString().padStart(2, '0')}:${diff.h.toString().padStart(2, '0')}:${diff.m.toString().padStart(2, '0')}:${diff.s.toString().padStart(2, '0')}`;
 
 export const formattedDiff = (start: number, end: number) => diffToFormat(timeDiff(start, end));

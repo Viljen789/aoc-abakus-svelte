@@ -1,5 +1,12 @@
 import { AOC_LEADERBOARD_URL, AOC_SESSION_COOKIE } from '$env/static/private';
-import { getLatestSnapshot, getSnapshotData, saveSnapshot } from '$lib/server/db.ts';
+import {
+	getLatestSnapshot,
+	getSnapshotData,
+	saveSnapshot,
+	firstDay,
+	getOldLeaderboard,
+	getOldLeaderboardId
+} from '$lib/server/db.ts';
 
 const convertUnixToDateTime = (timestamp: number | undefined) => {
 	const date = new Date(timestamp * 1000);
@@ -37,9 +44,15 @@ export async function load({ locals }) {
 	}
 
 	const result = getSnapshotData(latest.id);
-
+	const day = firstDay();
+	const oldList = getOldLeaderboard(1762902000);
+	const newList = getOldLeaderboard(new Date().getTime());
+	console.log()
 	return {
 		...result,
-		user: locals.user
+		user: locals.user,
+		firstDay:day,
+		oldList,
+		newList
 	};
 }

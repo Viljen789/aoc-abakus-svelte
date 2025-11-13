@@ -215,3 +215,26 @@ export const firstDay = (): number | undefined => {
 	const row = stmt.get() as { day1_ts?: number } | undefined;
 	return row?.day1_ts;
 };
+
+export const getOldLeaderboard = (dayStart: number) => {
+	const firstStmt = db.prepare(`
+		SELECT id
+		FROM snapshots
+		WHERE fetched_at <= ?
+		ORDER BY fetched_at DESC;
+	`);
+	const leaderboardId = firstStmt.get(dayStart) as number;
+	console.log('id: ', leaderboardId.id);
+
+	const stmt = db.prepare(`
+		SELECT member_id, name, local_score
+		FROM member_snapshots
+		WHERE snapshot_id = ?
+	`);
+	const prevScore = stmt.all(leaderboardId.id) as Array<{
+		member_id: number;
+		name: string;
+		local_score: number;
+	}>;
+	return prevScore;
+};

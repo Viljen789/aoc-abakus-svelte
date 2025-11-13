@@ -189,60 +189,48 @@ export const getSnapshotData = (snapshot_id: number): LeaderboardData => {
 		event: snapshot?.event || '2024'
 	};
 };
-
-export const getRecentStars = (secondsAgo: number, snapshot_id: number) => {
-	const nowInSeconds = Math.floor(Date.now() / 1000);
-	const cutoffTime = nowInSeconds - secondsAgo;
-	const recentStars = db.prepare(`
-        SELECT member_id, part, day 
-        FROM star_completions 
-        WHERE completed_at > ?
-        AND snapshot_id = ?
-    `);
-	return recentStars.all(cutoffTime, snapshot_id) as Array<{
-		member_id: number;
-		part: number;
-		day: number;
-	}>;
-};
-
-export const firstDay = (): number | undefined => {
+export const firstDay = () => {
 	const stmt = db.prepare(`
-    SELECT day1_ts
-    FROM snapshots
-    ORDER BY snapshots.fetched_at DESC LIMIT 1
-  `);
-	const row = stmt.get() as { day1_ts?: number } | undefined;
-	return row?.day1_ts;
-};
-
-export const getOldRanks = (dayStart: number) => {
-	const firstStmt = db.prepare(`
-		SELECT id
+		SELECT day1_ts
 		FROM snapshots
-		WHERE fetched_at <= ?
-		ORDER BY fetched_at DESC;
+		ORDER BY fetched_at ASC
+		LIMIT 1
 	`);
-	const leaderboardId = firstStmt.get(dayStart) as number;
 
-	const stmt = db.prepare(`
+	const row = stmt.get() as { day1_ts: number } | undefined;
+	return row?.day1_ts || 0;
+}
+export const getOldRanks = (dayStart: number) => {
+  const firstStmt = db.prepare(`
+    SELECT id
+    FROM snapshots
+    WHERE fetched_at <= ?
+    ORDER BY fetched_at DESC
+    LIMIT 1
+  `);
 
-        SELECT 
-            member_id,
-            ROW_NUMBER() OVER (ORDER BY local_score DESC) as rank
-        FROM member_snapshots
-        WHERE snapshot_id = ?
-    `);
+  const leaderboardRow = firstStmt.get(dayStart) as { id?: number } | undefined;
+  if (!leaderboardRow?.id) {
+    return {} as Record<number, number>;
+  }
 
-	const rows = stmt.all(leaderboardId.id) as Array<{
-		member_id: number;
-		rank: number;
-	}>;
+  const stmt = db.prepare(`
+    SELECT 
+      member_id,
+      ROW_NUMBER() OVER (ORDER BY local_score DESC) as rank
+    FROM member_snapshots
+    WHERE snapshot_id = ?
+  `);
 
-	const rankMap = new Map();
-	for (const row of rows) {
-		rankMap.set(row.member_id, row.rank);
-	}
+  const rows = stmt.all(leaderboardRow.id) as Array<{
+    member_id: number;
+    rank: number;
+  }>;
 
-	return rankMap;
+  const rankObj: Record<number, number> = {};
+  for (const row of rows) {
+    rankObj[row.member_id] = row.rank;
+  }
+
+  return rankObj;
 };

@@ -11,8 +11,7 @@ export interface AbakusUser {
 	firstName: string;
 	lastName: string;
 	fullName: string;
-	email: string;
-	profilePicture?: string;
+	githubUsername: string;
 }
 
 export function getAuthorizationUrl(state: string): string {
@@ -89,8 +88,7 @@ export async function fetchUserData(accessToken: string): Promise<AbakusUser> {
 		firstName: data.firstName,
 		lastName: data.lastName,
 		fullName: data.fullName,
-		email: data.emailAddress || data.email,
-		profilePicture: data.profilePicture
+		githubUsername: data.githubUsername
 	};
 }
 

@@ -4,20 +4,17 @@ import {
 	getSnapshotData,
 	saveSnapshot,
 	firstDay,
-	getOldLeaderboard,
-	getOldLeaderboardId
+	getOldRanks
 } from '$lib/server/db.ts';
-
-const convertUnixToDateTime = (timestamp: number | undefined) => {
-	const date = new Date(timestamp * 1000);
-	return date.toLocaleString();
-};
+import { convertUnixToDateTime } from '$lib/utils/time.ts';
 
 export async function load({ locals }) {
 	let latest = getLatestSnapshot();
 	const waitMs = Date.now() - (latest?.fetched_at ? latest.fetched_at * 1000 : 0);
 	const waitSStr = new Date(waitMs).toISOString().slice(11, 19);
 	const remainingTime = new Date(900000 - waitMs).toISOString().slice(11, 19);
+	const dayInMs: number = 24 * 60 * 60; // Seconds since db is in secs
+	const startOfToday: number = Math.floor(new Date() / (dayInMs * 1000)) * dayInMs; // Convert from ms to secs
 
 	if (!latest || waitMs > 900 * 1000) {
 		const response = await fetch(AOC_LEADERBOARD_URL, {
@@ -45,14 +42,12 @@ export async function load({ locals }) {
 
 	const result = getSnapshotData(latest.id);
 	const day = firstDay();
-	const oldList = getOldLeaderboard(1762902000);
-	const newList = getOldLeaderboard(new Date().getTime());
-	console.log()
+	const diffRanks = getOldRanks(startOfToday);
+
 	return {
 		...result,
 		user: locals.user,
-		firstDay:day,
-		oldList,
-		newList
+		firstDay: day,
+		diffRanks
 	};
 }

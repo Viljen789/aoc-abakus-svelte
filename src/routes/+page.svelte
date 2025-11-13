@@ -2,12 +2,13 @@
 	import { ChartLine, Crown, UserStar, User } from 'lucide-svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Profile from '$lib/components/Profile.svelte';
-	import Page from '$lib/components/Stats/+page.svelte';
+	import Statistics from '$lib/components/Statistics.svelte';
 	import Leaderboard from '$lib/components/Leaderboard.svelte';
-	import { timeDiff, diffToFormat, formattedDiff } from '$lib/utils/time';
+	import { timeDiffObj, diffToFormat, formattedDiff } from '$lib/utils/time';
 	import DynamicClock from '$lib/components/DynamicClock.svelte';
 	import LogOut from '$lib/components/LogOut.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import tippy from 'tippy.js';
 
 	const { data } = $props();
 	// const firstDay = data.first_day ?? Math.floor(Date.now() / 1000); // ms
@@ -15,15 +16,13 @@
 	// const firstday = firstDay();
 	const targetDate = 1761951600000;
 
-	const currentDay = timeDiff(firstDay, new Date().getTime()).d;
+	const currentDay = timeDiffObj(firstDay, new Date().getTime()).d;
 
 	let elapsed = $state(0);
 
 	let timeRemaining = $state('calculating...');
 
 	let time: number = $state(new Date().getTime());
-
-
 
 	$effect(() => {
 		timeRemaining = formattedDiff(time, targetDate);
@@ -39,11 +38,10 @@
 
 	const views = [
 		{ component: Leaderboard, icon: Crown },
-		{ component: Page, icon: ChartLine },
+		{ component: Statistics, icon: ChartLine },
 		{ component: Profile, icon: UserStar }
 	];
 	const CurrentView = $derived(views[activeTab].component);
-
 
 	const handleLogout = async () => {
 		await fetch('/auth/logout', { method: 'POST' });
@@ -75,8 +73,9 @@
 		</div>
 	</div>
 	<Tabs bind:activeTab icons={views.map((view) => view.icon)} />
-	<CurrentView {data} members={data.members} event={data.event}/>
+	<CurrentView {data} members={data.members} event={data.event} />
 	<!--		<Clock countdown={timeRemaining} />-->
-	<!--		<DynamicClock countdown={timeRemaining} />-->
-	Current day: {currentDay}
+	<!--&lt;!&ndash;			<DynamicClock countdown={timeRemaining} />&ndash;&gt;-->
+	<!--	Current day: {currentDay}-->
+	{firstDay}
 </div>

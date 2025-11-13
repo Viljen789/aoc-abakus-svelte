@@ -37,20 +37,21 @@ You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
-Local dev: 
+Local dev:
+
 ```ssh
 python manage.py shell:
-  
+
  from lego.apps.oauth.models import APIApplication
- 
+
  # Get the existing app
  app = APIApplication.objects.get(client_id="sC6GkHr8GS2OSRpFzKL2aASnz2eTPLYqK8TAGihF")
- 
+
  # Add your redirect URI (keeping the original one too)
  app.redirect_uris = """http://127.0.0.1:5000/complete/lego/
  http://localhost:5173/auth/callback"""
- 
+
  app.save()
- 
+
  print("done")
 ```

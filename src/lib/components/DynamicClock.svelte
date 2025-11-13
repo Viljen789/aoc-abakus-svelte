@@ -49,8 +49,8 @@
 		position: relative;
 		height: 2rem;
 		width: 2rem;
-		background: whitesmoke;
-		border: 0.25rem solid lightgray;
+		/*background: whitesmoke;*/
+		/*border: 0.25rem solid lightgray;*/
 		border-radius: 50%;
 	}
 

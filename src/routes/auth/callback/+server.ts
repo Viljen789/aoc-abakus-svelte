@@ -27,14 +27,23 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	}
 
 	try {
+		console.log('Attempting token exchange...');
 		const tokenData = await exchangeCodeForToken(code);
+		console.log('Token exchange successful');
 
+		console.log('Fetching user data...');
 		const user = await fetchUserData(tokenData.access_token);
+		console.log('User data fetched:', user);
 
 		createSession(cookies, user, tokenData.access_token, tokenData.expires_in);
+		console.log('Session created successfully');
 	} catch (err) {
 		console.error('OAuth callback error:', err);
-		throw error(500, 'Failed to authenticate with Abakus');
+		console.error('Error details:', err instanceof Error ? err.message : String(err));
+		throw error(
+			500,
+			`Failed to authenticate with Abakus: ${err instanceof Error ? err.message : String(err)}`
+		);
 	}
 
 	throw redirect(302, '/');

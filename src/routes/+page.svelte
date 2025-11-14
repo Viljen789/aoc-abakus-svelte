@@ -1,14 +1,18 @@
 <script lang="ts">
-	import { ChartLine, Crown, UserStar, User } from 'lucide-svelte';
+	import { ChartLine, Crown, UserStar, User, LogIn } from 'lucide-svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Profile from '$lib/components/Profile.svelte';
-	import Statistics from '$lib/components/Statistics.svelte';
+	import Statistics from '$lib/components/Stats/Statistics.svelte';
 	import Leaderboard from '$lib/components/Leaderboard.svelte';
 	import { timeDiffObj, diffToFormat, formattedDiff } from '$lib/utils/time';
 	import DynamicClock from '$lib/components/DynamicClock.svelte';
 	import LogOut from '$lib/components/LogOut.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import tippy from 'tippy.js';
+	import PersonalStats from '$lib/components/Stats/PersonalStats.svelte';
+	import { numToTally } from '$lib/utils/TallyNums.ts';
+	import ApiDebugData from '$lib/components/ApiDebugData.svelte';
+	import { siGithub } from 'simple-icons';
 
 	const { data } = $props();
 	// const firstDay = data.first_day ?? Math.floor(Date.now() / 1000); // ms
@@ -39,7 +43,7 @@
 	const views = [
 		{ component: Leaderboard, icon: Crown },
 		{ component: Statistics, icon: ChartLine },
-		{ component: Profile, icon: UserStar }
+		{ component: Statistics, icon: UserStar }
 	];
 	const CurrentView = $derived(views[activeTab].component);
 
@@ -47,23 +51,45 @@
 		await fetch('/auth/logout', { method: 'POST' });
 		window.location.reload();
 	};
+
+	const tallyComp = numToTally(12);
 </script>
 
 <div>
 	<div class="mb-6 flex items-center justify-between">
-		<h1 class="text-5xl font-bold">AOC 2024</h1>
+		<h1 class="text-5xl font-bold">Advent of Code - Abakus</h1>
 
 		<div class="flex items-center gap-4">
 			{#if data.user}
-				<div class="flex items-center gap-2">
-					<User class="h-5 w-5" />
-					<span class="font-medium">{data.user.fullName}</span>
+				<div class="flex flex-col items-end">
+					<div class="flex items-center gap-2">
+						<span class="text-2xl">{data.user.fullName}</span>
+					</div>
+					<div class="ml-2 flex items-center gap-2 text-lg text-gray-600">
+						<p>@{data.user.username}</p>
+						•
+						{#if data.user.githubUsername}
+							<a
+								href="github.com/{data.user.githubUsername}"
+								class="flex items-center gap-1 text-lg text-gray-400 hover:underline"
+							>
+								<svg
+									role="img"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-4 w-4 fill-current"
+								>
+									<path d={siGithub.path} />
+								</svg>{data.user.githubUsername}
+							</a>
+						{/if}
+					</div>
 				</div>
 				<button
 					onclick={handleLogout}
 					class="flex items-center gap-2 rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
 				>
-					<LogOut class="h-4 w-4" />
+					<LogOut />
 				</button>
 			{:else}
 				<a href="/auth/login" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
@@ -72,10 +98,13 @@
 			{/if}
 		</div>
 	</div>
-	<Tabs bind:activeTab icons={views.map((view) => view.icon)} />
+	<!--	<Tabs bind:activeTab icons={views.map((view) => view.icon)} />-->
+
+	<PersonalStats {data} members={data.members} event={data.event} />
 	<CurrentView {data} members={data.members} event={data.event} />
+	<ApiDebugData {data} />
+
 	<!--		<Clock countdown={timeRemaining} />-->
 	<!--&lt;!&ndash;			<DynamicClock countdown={timeRemaining} />&ndash;&gt;-->
 	<!--	Current day: {currentDay}-->
-	{firstDay}
 </div>

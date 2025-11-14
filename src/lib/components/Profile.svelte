@@ -21,6 +21,9 @@
 
 	const currentYear = parseInt(event);
 	const currentDay = 14;
+	const TEST_MEMBER_ID = '2579356';
+
+	const currentMember: member | null = members[TEST_MEMBER_ID] ?? Object.values(members)[0] ?? null;
 
 	const userMember = $derived(() => {
 		if (!data.user) return null;
@@ -32,7 +35,7 @@
 		});
 	});
 
-	const currentMember = $derived(userMember());
+	// const currentMember = $derived(userMember());
 
 	const userRank = $derived(() => {
 		if (!currentMember) return null;
@@ -43,34 +46,38 @@
 	});
 
 	const getDayStatus = (member: member, day: number) => {
+		if (!member || !member.completion_day_level) return 'none';
 		const dayData = member.completion_day_level[day];
 		if (!dayData) return 'none';
 		if (dayData['2']) return 'both';
 		if (dayData['1']) return 'one';
+		return 'none';
 	};
 
 	const stats = $derived(() => {
-		if (!currentMember) return null;
+		if (!currentMember || !currentMember.completion_day_level) return null;
 
-		const completedDays = Object.keys(currentMember.completion_day_level).length;
-		const totalStars = currentMember.stars;
-		const bothStars = Object.values(currentMember.completion_day_level).filter(
+		const completedDays = Object.keys(currentMember.completion_day_level || {}).length;
+		const totalStars = currentMember.stars || 0;
+		const bothStars = Object.values(currentMember.completion_day_level || {}).filter(
 			(day: any) => day['2']
 		).length;
 		const oneStar = completedDays - bothStars;
 
 		const part1Times: number[] = [];
-		Object.entries(currentMember.completion_day_level).forEach(([day, parts]: [string, any]) => {
-			if (parts['1']) {
-				const dayNum = parseInt(day);
-				const unlockTime = new Date(currentYear, 11, dayNum, 6, 0, 0).getTime() / 1000;
-				const completionTime = parts['1'].get_star_ts;
-				const timeTaken = completionTime - unlockTime;
-				if (timeTaken > 0) {
-					part1Times.push(timeTaken);
+		Object.entries(currentMember.completion_day_level || {}).forEach(
+			([day, parts]: [string, any]) => {
+				if (parts['1']) {
+					const dayNum = parseInt(day);
+					const unlockTime = new Date(currentYear, 11, dayNum, 6, 0, 0).getTime() / 1000;
+					const completionTime = parts['1'].get_star_ts;
+					const timeTaken = completionTime - unlockTime;
+					if (timeTaken > 0) {
+						part1Times.push(timeTaken);
+					}
 				}
 			}
-		});
+		);
 
 		const avgPart1Time =
 			part1Times.length > 0 ? part1Times.reduce((a, b) => a + b, 0) / part1Times.length : 0;
@@ -210,7 +217,7 @@
 					<tbody>
 						{#each Array.from({ length: 25 }, (_, i) => i + 1) as day (day)}
 							{@const status = getDayStatus(currentMember, day)}
-							{@const dayData = currentMember.completion_day_level[day]}
+							{@const dayData = currentMember?.completion_day_level?.[day]}
 							<tr class="border-t border-gray-700">
 								<td class="p-2">
 									<a

@@ -30,32 +30,33 @@
 	};
 </script>
 
-<div class="fullClock">
-	Dynamic:
-	{#each countdown as sym, i (i)}
-		<div class={sym === ':' ? 'colon' : 'digit'}>
-			{#each Array.from({ length: sym === ':' ? 12 : sym !== '-' ? 24 : 0 }) as _, i (i)}
-				<div class="frame {getFrameClass(sym, i)}">
-					<div class="hand"></div>
-					<div class="hand"></div>
-				</div>
-			{/each}
-		</div>
-	{/each}
+<div class="inline-block w-fit text-shadow-md">
+	<div class="fullClock">
+		{#each countdown as sym, i (i)}
+			<div class={sym === ':' ? 'colon' : 'digit'}>
+				{#each Array.from({ length: sym === ':' ? 12 : sym !== '-' ? 24 : 0 }) as _, i (i)}
+					<div class="frame {getFrameClass(sym, i)}">
+						<div class="hand"></div>
+						<div class="hand"></div>
+					</div>
+				{/each}
+			</div>
+		{/each}
+	</div>
 </div>
 
 <style>
 	.frame {
 		position: relative;
-		height: 2rem;
-		width: 2rem;
+		height: 2em;
+		width: 2em;
 		/*background: whitesmoke;*/
 		/*border: 0.25rem solid lightgray;*/
 		border-radius: 50%;
 	}
 
 	.hand {
-		height: 0.1875rem;
+		height: 0.1875em;
 		background: black;
 		position: absolute;
 		top: 50%;
@@ -147,10 +148,11 @@
 	}
 
 	.fullClock {
-		display: flex;
+		display: inline-flex;
+		width: fit-content;
 		position: relative;
 		justify-content: center;
-		margin: 0 auto;
-		width: max-content;
+		transform: scale(0.2);
+		transform-origin: left top;
 	}
 </style>

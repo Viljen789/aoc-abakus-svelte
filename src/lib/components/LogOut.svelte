@@ -1,4 +1,6 @@
 <script>
+	import { LogOut } from 'lucide-svelte';
+
 	async function handleLogout() {
 		await fetch('/auth/logout', {
 			method: 'POST'
@@ -7,4 +9,4 @@
 	}
 </script>
 
-<button on:click={handleLogout}> Log Out </button>
+<button on:click={handleLogout}> <LogOut /> </button>

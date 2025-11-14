@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import type { MinimalAbakusUser } from './auth';
 
 export interface member {
 	id: number;
@@ -12,6 +13,7 @@ export interface member {
 			'2'?: { get_star_ts: number };
 		};
 	};
+	abakusUser?: MinimalAbakusUser;
 }
 export interface LeaderboardData {
 	members: { [id: string]: member };
@@ -199,9 +201,9 @@ export const firstDay = () => {
 
 	const row = stmt.get() as { day1_ts: number } | undefined;
 	return row?.day1_ts || 0;
-}
+};
 export const getOldRanks = (dayStart: number) => {
-  const firstStmt = db.prepare(`
+	const firstStmt = db.prepare(`
     SELECT id
     FROM snapshots
     WHERE fetched_at <= ?
@@ -209,12 +211,12 @@ export const getOldRanks = (dayStart: number) => {
     LIMIT 1
   `);
 
-  const leaderboardRow = firstStmt.get(dayStart) as { id?: number } | undefined;
-  if (!leaderboardRow?.id) {
-    return {} as Record<number, number>;
-  }
+	const leaderboardRow = firstStmt.get(dayStart) as { id?: number } | undefined;
+	if (!leaderboardRow?.id) {
+		return {} as Record<number, number>;
+	}
 
-  const stmt = db.prepare(`
+	const stmt = db.prepare(`
     SELECT 
       member_id,
       ROW_NUMBER() OVER (ORDER BY local_score DESC) as rank
@@ -222,15 +224,15 @@ export const getOldRanks = (dayStart: number) => {
     WHERE snapshot_id = ?
   `);
 
-  const rows = stmt.all(leaderboardRow.id) as Array<{
-    member_id: number;
-    rank: number;
-  }>;
+	const rows = stmt.all(leaderboardRow.id) as Array<{
+		member_id: number;
+		rank: number;
+	}>;
 
-  const rankObj: Record<number, number> = {};
-  for (const row of rows) {
-    rankObj[row.member_id] = row.rank;
-  }
+	const rankObj: Record<number, number> = {};
+	for (const row of rows) {
+		rankObj[row.member_id] = row.rank;
+	}
 
-  return rankObj;
+	return rankObj;
 };

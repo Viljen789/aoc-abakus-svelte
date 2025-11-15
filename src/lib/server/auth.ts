@@ -137,7 +137,7 @@ export async function fetchAllUsers(accessToken: string): Promise<MinimalAbakusU
 	// API returns paginated results with a 'results' array
 	const users = data.results || data;
 
-	console.log('Sample user from API:', JSON.stringify(users[0], null, 2));
+	// console.log('Sample user from API:', JSON.stringify(users[0], null, 2));
 
 	return users.map((user: any) => ({
 		id: user.id,

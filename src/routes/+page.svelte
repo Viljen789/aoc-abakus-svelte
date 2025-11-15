@@ -9,7 +9,7 @@
 	import LogOut from '$lib/components/LogOut.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import tippy from 'tippy.js';
-	import PersonalStats from '$lib/components/Stats/PersonalStats.svelte';
+	import Page from '$lib/components/PersonalBar/+page.svelte';
 	import { numToTally } from '$lib/utils/TallyNums.ts';
 	import ApiDebugData from '$lib/components/ApiDebugData.svelte';
 	import { siGithub } from 'simple-icons';
@@ -91,18 +91,44 @@
 				>
 					<LogOut />
 				</button>
-			{:else}
-				<a href="/auth/login" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-					Logg inn med Abakus
-				</a>
+				<!--{:else}
+					<a href="/auth/login" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+						Logg inn med Abakus
+					</a>-->
 			{/if}
 		</div>
 	</div>
 	<!--	<Tabs bind:activeTab icons={views.map((view) => view.icon)} />-->
 
-	<PersonalStats {data} members={data.members} event={data.event} />
+	{#if data.user}
+		<Page {data} members={data.members} event={data.event} />
+	{:else}
+		<div class="rounded-md bg-yellow-50 p-8 text-center">
+			<h2 class="mb-4 text-2xl font-bold">Ikke pålogget</h2>
+			<p class="mb-4">Du må logge inn for å se din profi.</p>
+			<a
+				href="/auth/login"
+				class="inline-block bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+			>
+				Logg inn med Abakus
+			</a>
+		</div>
+	{/if}
+
 	<CurrentView {data} members={data.members} event={data.event} />
 	<ApiDebugData {data} />
+
+	{#each Object.values(data.members) as member}
+		<div class="flex items-center gap-4">
+			<p>AOC name: {member.name}</p>
+			{#if member.abakusUser}
+				<div class="flex gap-4">
+					<p>Abakus name: {member.abakusUser.fullName}</p>
+					<p>Username: @{member.abakusUser.username}</p>
+				</div>
+			{/if}
+		</div>
+	{/each}
 
 	<!--		<Clock countdown={timeRemaining} />-->
 	<!--&lt;!&ndash;			<DynamicClock countdown={timeRemaining} />&ndash;&gt;-->

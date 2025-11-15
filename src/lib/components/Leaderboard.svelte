@@ -14,6 +14,7 @@
 	import DynamicClock from '$lib/components/DynamicClock.svelte';
 	import { changeTime, convertUnixToDateTime, timeDiffObj } from '$lib/utils/time.ts';
 	import { tooltip } from '$lib/actions/tippy.ts';
+
 	const { data = {}, members = {}, event = '2024', recentStars = [] } = $props();
 
 	const sortedMembers = Object.values(members).sort((a, b) => b.local_score - a.local_score);
@@ -33,8 +34,7 @@
 	console.log('first:', convertUnixToDateTime(firstDay, true));
 	console.log('next: ', convertUnixToDateTime(nextDay, true));
 	console.log(Date.now());
-	// const nextDayProgress = (nextDay-Date.now()/1000)/(24*60*60);
-	const nextDayProgress = 0.1;
+	const nextDayProgress = Math.max(0, Math.min(1, (nextDay - Date.now() / 1000) / (24 * 60 * 60)));
 	console.log('nextDayProgress:', nextDayProgress);
 
 	const getDayStatus = (member: member, day: number) => {
@@ -73,30 +73,28 @@
 		const previousRank = oldRanks[String(sortedMembers[i].id)] ?? currentRank;
 		diff.set(sortedMembers[i].id, previousRank - currentRank);
 	}
-	console.log(diff);
-	let isHovered = $state<boolean>(false);
 </script>
 
-<div class="overflow-hidden rounded-lg bg-white shadow-md">
+<div class="overflow-hidden rounded-lg bg-white p-4 shadow-md">
 	<div class="max-w-full overflow-x-auto">
-		<table class="w-full border-collapse">
+		<table class="w-full border-collapse rounded-lg">
 			<thead>
 				<tr class="">
 					<th class=" sticky left-0 bg-white text-center"></th>
-					<th class="sticky z-10 bg-white p-2 text-center" style="left: var(--col-rank-width);"
-						>Rank</th
-					>
+					<th class="sticky z-10 bg-white p-2 text-left" style="left: var(--col-rank-width);"
+						>Rank
+					</th>
 					<th class="rig sticky z-10 bg-white pl-8 text-left" style="left: var(--col-name-width)"
-						>Navn</th
-					>
-					<th class="w-fit p-4 text-center">Stjerner</th>
+						>Navn
+					</th>
+					<th class="w-fit bg-white p-4 text-center">Stjerner</th>
 					<th class="p-2 text-center">Score</th>
 					{#each Array.from({ length: 25 }, (_, i) => i + 1) as day (day)}
 						<th
 							class="w-8 p-2 text-center text-sm transition-all duration-1000"
 							style={day === currentDay + 1
 								? `opacity: ${0.3 + nextDayProgress * 0.7};
-						     background: linear-gradient(90deg, transparent, rgba(100, 100, 100, 0.8));`
+						     background: linear-gradient(90deg, transparent, rgba(100, 100, 100, 0.3));`
 								: day > currentDay
 									? 'background-color: rgb(100, 100, 100); opacity: 0.3;'
 									: ''}
@@ -116,7 +114,7 @@
 										placement: 'bottom'
 									}}
 								>
-									<Hourglass class="hg-flip" width="20" height="20" />
+									<Hourglass class="hg-flip text-gray-400" width="20" height="20" />
 								</span>
 							{:else}
 								<a href={`https://adventofcode.com/${currentYear}/day/${day}`} class="text-blue-300"
@@ -195,7 +193,7 @@
 								class="p-1 text-center transition-all duration-1000"
 								style={day === currentDay + 1
 									? `opacity: ${0.3 + nextDayProgress * 0.7};
-						     background: linear-gradient(90deg, transparent, rgba(100, 100, 100, 0.8));`
+						     background: linear-gradient(90deg, transparent, rgba(100, 100, 100, 0.3));`
 									: day > currentDay
 										? 'background-color: rgb(100, 100, 100); opacity: 0.3;'
 										: ''}
